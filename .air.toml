@@ -1,0 +1,39 @@
+# Config file for Air - https://github.com/air-verse/air
+
+# Direktori root proyek Anda. Titik (.) berarti direktori saat ini.
+root = "."
+
+# Direktori sementara untuk menyimpan hasil build.
+tmp_dir = "tmp"
+
+[build]
+# Perintah untuk meng-compile aplikasi Go Anda.
+# Ini akan mengambil kode dari ./cmd/api dan membuat file eksekusi di ./tmp/main
+cmd = "go build -o ./tmp/main ./cmd/api"
+
+# File biner yang akan dijalankan setelah build selesai.
+bin = "tmp/main"
+
+# Direktori yang akan dipantau perubahannya.
+# Jika ada file yang berubah di folder ini, Air akan mem-build ulang.
+include_dir = ["cmd", "internal", "views", "public"]
+
+# Ekstensi file yang akan dipantau.
+include_ext = ["go", "html", "css", "js", "toml"]
+
+# Direktori yang diabaikan.
+exclude_dir = ["vendor", "tmp", "node_modules", ".git"]
+
+# Beri jeda 1 detik sebelum mem-build ulang untuk menghindari build berlebihan.
+delay = 1000 # ms
+
+# Kirim sinyal interupsi untuk mematikan proses lama sebelum memulai yang baru.
+kill_signal = "SIGINT"
+
+[log]
+# Tampilkan waktu pada log.
+time = true
+
+[misc]
+# Hapus direktori tmp saat Air dimatikan.
+clean_on_exit = true

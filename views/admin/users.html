@@ -1,0 +1,223 @@
+<div class="space-y-6">
+    <!-- Header Halaman -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-800">Daftar Pengguna</h1>
+        <button id="add-user-btn"
+            class="bg-brand-orange text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-orange-600 transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Tambah Pengguna</span>
+        </button>
+    </div>
+
+    <!-- Tabel Pengguna -->
+    <div class="bg-white p-6 rounded-lg shadow-sm overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Username</th>
+                    <th scope="col" class="px-6 py-3">Role</th>
+                    <th scope="col" class="px-6 py-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                <!-- Data akan diisi oleh JavaScript -->
+                <tr>
+                    <td colspan="3" class="text-center py-10">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i>
+                        <p class="mt-2 text-gray-500">Memuat data pengguna...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal untuk Tambah/Edit Pengguna -->
+<div id="user-modal" class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 id="modal-title" class="text-xl font-semibold text-gray-800">Tambah Pengguna Baru</h3>
+            <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-times text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="user-form" class="space-y-4">
+                <input type="hidden" id="user-id">
+                <div>
+                    <label for="user-username" class="block mb-2 text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="user-username"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-brand-orange focus:border-brand-orange"
+                        required>
+                </div>
+                <div>
+                    <label for="user-password" class="block mb-2 text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="user-password"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-brand-orange focus:border-brand-orange">
+                    <p id="password-help" class="mt-1 text-xs text-gray-500">Kosongkan jika tidak ingin mengubah
+                        password.</p>
+                </div>
+                <div>
+                    <label for="user-role" class="block mb-2 text-sm font-medium text-gray-700">Role</label>
+                    <select id="user-role"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-brand-orange focus:border-brand-orange"
+                        required>
+                        <option value="admin">Admin</option>
+                        <option value="karyawan">Karyawan</option>
+                        <option value="kasir">Kasir</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end items-center p-4 border-t space-x-3">
+            <button id="cancel-btn" type="button"
+                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Batal</button>
+            <button id="save-user-btn" type="submit" form="user-form"
+                class="px-4 py-2 bg-brand-orange text-white font-semibold rounded-lg hover:bg-orange-600">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Elemen DOM ---
+        const addUserBtn = document.getElementById('add-user-btn');
+        const modal = document.getElementById('user-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const userForm = document.getElementById('user-form');
+        const modalTitle = document.getElementById('modal-title');
+        const userIdInput = document.getElementById('user-id');
+        const usernameInput = document.getElementById('user-username');
+        const passwordInput = document.getElementById('user-password');
+        const passwordHelp = document.getElementById('password-help');
+        const roleSelect = document.getElementById('user-role');
+        const usersTableBody = document.getElementById('users-table-body');
+
+        let usersCache = [];
+
+        // --- Fungsi ---
+        const openModal = (mode = 'add', user = null) => {
+            userForm.reset();
+            passwordHelp.classList.add('hidden');
+            passwordInput.required = true;
+
+            if (mode === 'add') {
+                modalTitle.textContent = 'Tambah Pengguna Baru';
+                userIdInput.value = '';
+            } else if (mode === 'edit' && user) {
+                modalTitle.textContent = 'Edit Pengguna';
+                userIdInput.value = user.id;
+                usernameInput.value = user.username;
+                roleSelect.value = user.role;
+                passwordInput.required = false;
+                passwordHelp.classList.remove('hidden');
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        const fetchAndRenderUsers = async () => {
+            usersTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i><p class="mt-2 text-gray-500">Memuat data...</p></td></tr>`;
+            try {
+                const res = await fetchWithAuth('/api/v1/admin/users');
+                if (!res.ok) throw new Error('Gagal memuat pengguna');
+                const users = await res.json();
+                usersCache = users;
+
+                usersTableBody.innerHTML = '';
+                if (!users || users.length === 0) {
+                    usersTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-gray-500">Belum ada pengguna.</td></tr>`;
+                    return;
+                }
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b hover:bg-gray-50';
+                    row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${user.username}</td>
+                    <td class="px-6 py-4 capitalize">${user.role}</td>
+                    <td class="px-6 py-4 text-center space-x-2">
+                        <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${user.id}"><i class="fa-solid fa-pencil-alt"></i></button>
+                        <button class="delete-btn text-red-600 hover:text-red-800" data-id="${user.id}"><i class="fa-solid fa-trash-alt"></i></button>
+                    </td>
+                `;
+                    row.querySelector('.edit-btn').addEventListener('click', () => {
+                        const userToEdit = usersCache.find(u => u.id === user.id);
+                        openModal('edit', userToEdit);
+                    });
+                    row.querySelector('.delete-btn').addEventListener('click', async () => {
+                        if (confirm(`Yakin ingin menghapus pengguna "${user.username}"?`)) {
+                            try {
+                                const res = await fetchWithAuth(`/api/v1/admin/users/${user.id}`, { method: 'DELETE' });
+                                const result = await res.json();
+                                if (!res.ok) throw new Error(result.error || 'Gagal menghapus pengguna.');
+                                alert('Pengguna berhasil dihapus.');
+                                fetchAndRenderUsers();
+                            } catch (error) {
+                                alert(`Error: ${error.message}`);
+                            }
+                        }
+                    });
+                    usersTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                usersTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-red-500">${error.message}</td></tr>`;
+            }
+        };
+
+        const handleFormSubmit = async (e) => {
+            e.preventDefault();
+            const id = userIdInput.value;
+            const isEdit = !!id;
+
+            const payload = {
+                username: usernameInput.value,
+                role: roleSelect.value,
+            };
+
+            // Hanya tambahkan password ke payload jika diisi
+            if (passwordInput.value) {
+                payload.password = passwordInput.value;
+            }
+
+            const url = isEdit ? `/api/v1/admin/users/${id}` : '/api/v1/admin/register';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetchWithAuth(url, {
+                    method: method,
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || 'Terjadi kesalahan');
+
+                alert(`Pengguna berhasil ${isEdit ? 'diperbarui' : 'dibuat'}.`);
+                closeModal();
+                fetchAndRenderUsers();
+            } catch (error) {
+                alert(`Gagal menyimpan pengguna: ${error.message}`);
+            }
+        };
+
+        // --- Event Listeners ---
+        addUserBtn.addEventListener('click', () => openModal('add'));
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        userForm.addEventListener('submit', handleFormSubmit);
+
+        // --- Inisialisasi ---
+        fetchAndRenderUsers();
+    });
+</script>

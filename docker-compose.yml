@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: hayoon_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: hayoon_bite
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d hayoon_bite" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Aplikasi GoFiber dengan Air untuk hot-reload
+  app:
+    build: .
+    container_name: hayoon_app
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/tmp
+      - /app/.git
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Environment ini hanya dipakai kalau app jalan DI DALAM container
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASSWORD: password123
+      DB_NAME: hayoon_bite
+      DB_PORT: 5432
+      DB_SSLMODE: disable
+      # DATABASE_URL dihapus saja karena kita pakai variabel terpisah
+    command: air -c .air.toml
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

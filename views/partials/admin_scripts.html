@@ -1,0 +1,161 @@
+<script>
+    // --- FUNGSI UTILITAS & AUTH (Kode Lama) ---
+    function getAuthToken() {
+        return localStorage.getItem('authToken') || '';
+    }
+    function getAuthInfo() {
+        return {
+            token: localStorage.getItem('authToken') || '',
+            role: localStorage.getItem('authRole') || '',
+            username: localStorage.getItem('authUsername') || ''
+        };
+    }
+    function requireAuth(allowedRoles = ['admin', 'kasir', 'karyawan']) {
+        const auth = getAuthInfo();
+        if (!auth.token) {
+            // Matikan alert jika mengganggu saat dev, atau biarkan nyala
+            // alert('Sesi login tidak ditemukan.'); 
+            window.location.href = '/';
+            return false;
+        }
+        return true;
+    }
+    async function fetchWithAuth(url, options = {}) {
+        const token = getAuthToken();
+        const defaultHeaders = {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        };
+        const res = await fetch(url, {
+            ...options,
+            headers: { ...defaultHeaders, ...options.headers }
+        });
+        if (res.status === 401) {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+        return res;
+    }
+
+    // --- FUNGSI DASHBOARD ---
+    async function loadServerStatus() {
+        const el = document.getElementById('server-status');
+        if (!el) return;
+        try {
+            const res = await fetch('/api/v1/health');
+            if (res.ok) {
+                el.textContent = 'API Online';
+                el.classList.add('text-green-600');
+            }
+        } catch {
+            el.textContent = 'API Offline';
+            el.classList.add('text-red-600');
+        }
+    }
+
+    function showUserProfile() {
+        const el = document.getElementById('user-profile');
+        const auth = getAuthInfo();
+        if (el && auth.username) {
+            el.innerHTML = `
+                <div class="font-semibold">${auth.username}</div>
+                <div class="text-xs text-white/60 capitalize">${auth.role}</div>
+            `;
+        }
+    }
+
+    // --- EVENT LISTENER UTAMA ---
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // 1. Cek Auth
+        // if (!requireAuth(['admin'])) return; // Uncomment jika backend sudah siap validasi
+
+        // 2. Jalankan Fungsi Dasar
+        showUserProfile();
+        loadServerStatus();
+
+        // --- 3. LOGIKA MINI SIDEBAR & TOOLTIP (PERBAIKAN BUG) ---
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('main-sidebar');
+
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                // 1. Ubah lebar sidebar
+                sidebar.classList.toggle('w-64');
+                sidebar.classList.toggle('w-20');
+
+                // Cek apakah sekarang sedang mode MINI?
+                const isMini = sidebar.classList.contains('w-20');
+
+                // 2. Ambil elemen-elemen
+                const texts = sidebar.querySelectorAll('.sidebar-text');
+                const dividers = sidebar.querySelectorAll('.sidebar-divider');
+                const navItems = sidebar.querySelectorAll('.nav-item');
+                const tooltips = sidebar.querySelectorAll('.sidebar-tooltip');
+
+                // 3. Teks Menu: Hide jika Mini, Show jika Besar
+                texts.forEach(text => {
+                    if (isMini) {
+                        text.classList.add('hidden');
+                        text.classList.add('opacity-0');
+                    } else {
+                        text.classList.remove('hidden');
+                        setTimeout(() => text.classList.remove('opacity-0'), 50);
+                    }
+                });
+
+                // 4. Divider: Show jika Mini (sebagai pengganti teks kategori)
+                dividers.forEach(div => {
+                    if (isMini) div.classList.remove('hidden');
+                    else div.classList.add('hidden');
+                });
+
+                // 5. Justify Content (Agar icon ke tengah saat mini)
+                navItems.forEach(item => {
+                    if (isMini) {
+                        // Mode Mini: Icon di tengah
+                        item.classList.add('justify-center');
+                        item.classList.remove('px-4');
+                        item.classList.add('px-2');
+                    } else {
+                        // Mode Besar: Rata kiri
+                        item.classList.remove('justify-center');
+                        item.classList.add('px-4');
+                        item.classList.remove('px-2');
+                    }
+                });
+
+                // 6. LOGIKA TOOLTIP (YANG DIPERBAIKI)
+                tooltips.forEach(tip => {
+                    if (isMini) {
+                        // MODE MINI:
+                        // 1. Hapus 'hidden' agar elemen ada di DOM
+                        tip.classList.remove('hidden');
+                        // 2. Tambahkan 'invisible' & 'opacity-0' agar TIDAK MUNCUL sembarangan
+                        tip.classList.add('invisible', 'opacity-0', 'transition-opacity', 'duration-200');
+                        // 3. Tambahkan trigger hover agar muncul saat disorot
+                        tip.classList.add('group-hover:visible', 'group-hover:opacity-100');
+                    } else {
+                        // MODE BESAR:
+                        // Sembunyikan total agar tidak mengganggu
+                        tip.classList.add('hidden');
+                        // Bersihkan class sisa
+                        tip.classList.remove('invisible', 'opacity-0', 'group-hover:visible', 'group-hover:opacity-100');
+                    }
+                });
+            });
+        }
+
+        // 4. Logika Logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Yakin ingin keluar?')) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            });
+        }
+    });
+</script>

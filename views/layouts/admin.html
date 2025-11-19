@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }} - Hayoon Bite</title>
+
+    <script src="https://cdn.tailwindcss.com/3.4.5"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF8C00',
+                            brown: '#5D4037',
+                            cream: '#FFF8E1',
+                            dark: '#1F1D1D'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-brand-cream text-brand-dark font-sans min-h-screen">
+    <div class="flex min-h-screen">
+
+        {{template "partials/admin_sidebar" .}}
+
+        <div class="flex-1 flex flex-col">
+
+            {{template "partials/admin_header" .}}
+
+            <main class="flex-1 p-8 space-y-6">
+                {{embed}}
+            </main>
+
+        </div>
+    </div>
+
+    {{template "partials/admin_scripts" .}}
+
+</body>
+
+</html>
