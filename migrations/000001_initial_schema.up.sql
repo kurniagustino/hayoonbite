@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Create products table
+-- 2. Create products table (UPDATE: Added image_path)
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     price NUMERIC(12, 2) NOT NULL,
+    image_path VARCHAR(255) DEFAULT NULL, -- <--- KOLOM BARU DITAMBAHKAN
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -81,9 +82,9 @@ INSERT INTO inventory_items (name, stock_level, unit) VALUES
 ('Kantong Kresek', 500, 'pcs')
 ON CONFLICT (name) DO NOTHING;
 
--- 9. Insert sample product
-INSERT INTO products (name, price) VALUES
-('Roti Coklat', 6000.00)
+-- 9. Insert sample product (UPDATE: Added image_path value)
+INSERT INTO products (name, price, image_path) VALUES
+('Roti Coklat', 6000.00, NULL) -- <--- ISI NULL UNTUK PRODUK AWAL
 ON CONFLICT (name) DO NOTHING;
 
 -- 10. Insert recipe for Roti Coklat (FIXED AND ROBUST)

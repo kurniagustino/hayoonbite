@@ -16,9 +16,13 @@ type InventoryItem struct {
 }
 
 type Product struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	Name      string    `gorm:"not null;unique" json:"name"`
-	Price     float64   `gorm:"not null" json:"price"`
+	ID    uint    `gorm:"primaryKey" json:"id"`
+	Name  string  `gorm:"not null;unique" json:"name"`
+	Price float64 `gorm:"not null" json:"price"`
+
+	// UPDATE: Menambahkan ImagePath untuk menyimpan link gambar
+	ImagePath string `gorm:"default:null" json:"image_path"`
+
 	CreatedAt time.Time `gorm:"default:now()" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:now()" json:"updated_at"`
 }
@@ -47,7 +51,7 @@ type TransactionItem struct {
 	ID            uint        `gorm:"primaryKey" json:"id"`
 	TransactionID uint        `gorm:"not null" json:"transaction_id"`
 	Transaction   Transaction `gorm:"foreignKey:TransactionID" json:"-"`
-	ProductID     uint        `gorm:"not null" json:"product_id"` // TYPO FIXED: gorm.com -> gorm
+	ProductID     uint        `gorm:"not null" json:"product_id"`
 	Product       Product     `gorm:"foreignKey:ProductID" json:"product"`
 	Quantity      int         `gorm:"not null" json:"quantity"`
 	Subtotal      float64     `gorm:"not null" json:"subtotal"`
@@ -68,14 +72,8 @@ const (
 type User struct {
 	ID       uint   `gorm:"primaryKey" json:"id"`
 	Username string `gorm:"not null;unique" json:"username"`
-
-	// PERBAIKAN DISINI:
-	// Kita namakan fieldnya "Password" (biar enak dipanggil di kodingan)
-	// TAPI tag "column:password_hash" memaksa GORM baca dari kolom "password_hash" di DB.
-	// Tag json:"-" menyembunyikan password saat data user dikirim ke frontend (SECURITY)
 	Password string `gorm:"column:password_hash;not null" json:"-"`
-
-	Role Role `gorm:"type:varchar(20);not null" json:"role"`
+	Role     Role   `gorm:"type:varchar(20);not null" json:"role"`
 }
 
 type LoginRequest struct {
@@ -92,11 +90,11 @@ type LoginResponse struct {
 // FINANCE
 // ==========================================
 
-// OperationalCost merepresentasikan biaya operasional yang dikeluarkan.
 type OperationalCost struct {
-	ID          uint      `gorm:"primarykey" json:"id"`
+	ID          uint      `gorm:"primaryKey" json:"id"`
 	Description string    `json:"description"`
 	Amount      float64   `json:"amount"`
 	Category    string    `json:"category"`
 	Date        time.Time `json:"date"`
+	CreatedAt   time.Time `gorm:"default:now()" json:"created_at"`
 }

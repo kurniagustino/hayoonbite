@@ -1,7 +1,9 @@
 <div class="space-y-6">
-    <!-- Header Halaman -->
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-800">Daftar Produk</h1>
+        <div>
+            <h1 class="text-2xl font-display font-bold text-brand-dark">Daftar Produk</h1>
+            <p class="text-sm text-brand-brown/60">Kelola menu makanan dan resepnya</p>
+        </div>
         <button id="add-product-btn"
             class="bg-brand-orange text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-orange-600 transition-colors flex items-center gap-2">
             <i class="fa-solid fa-plus"></i>
@@ -9,23 +11,21 @@
         </button>
     </div>
 
-    <!-- Tabel Produk -->
-    <div class="bg-white p-6 rounded-lg shadow-sm overflow-x-auto">
+    <div class="bg-white border border-brand-orange/20 rounded-xl shadow-sm overflow-hidden">
         <table class="w-full text-sm text-left text-gray-600">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <thead class="text-xs text-brand-brown uppercase bg-brand-cream/50 border-b border-brand-orange/10">
                 <tr>
-                    <th scope="col" class="px-6 py-3">Gambar</th>
-                    <th scope="col" class="px-6 py-3">Nama Produk</th>
-                    <th scope="col" class="px-6 py-3">Harga</th>
-                    <th scope="col" class="px-6 py-3">Resep</th>
-                    <th scope="col" class="px-6 py-3 text-center">Aksi</th>
+                    <th scope="col" class="px-6 py-4">Gambar</th>
+                    <th scope="col" class="px-6 py-4">Nama Produk</th>
+                    <th scope="col" class="px-6 py-4">Harga</th>
+                    <th scope="col" class="px-6 py-4">Resep (Bahan Baku)</th>
+                    <th scope="col" class="px-6 py-4 text-center">Aksi</th>
                 </tr>
             </thead>
-            <tbody id="products-table-body">
-                <!-- Data akan diisi oleh JavaScript -->
+            <tbody id="products-table-body" class="divide-y divide-gray-100">
                 <tr>
                     <td colspan="5" class="text-center py-10">
-                        <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i>
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-brand-orange"></i>
                         <p class="mt-2 text-gray-500">Memuat data produk...</p>
                     </td>
                 </tr>
@@ -34,102 +34,108 @@
     </div>
 </div>
 
-<!-- Modal untuk Tambah/Edit Produk -->
-<div id="product-modal" class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <!-- Modal Header -->
-        <div class="flex justify-between items-center p-4 border-b">
-            <h3 id="modal-title" class="text-xl font-semibold text-gray-800">Tambah Produk Baru</h3>
-            <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-times text-2xl"></i>
+<div id="product-modal"
+    class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4 backdrop-blur-sm transition-all">
+    <div
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border-t-4 border-brand-orange">
+        <div class="flex justify-between items-center p-6 border-b border-gray-100">
+            <h3 id="modal-title" class="text-xl font-bold text-brand-dark">Tambah Produk Baru</h3>
+            <button id="close-modal-btn" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-times text-xl"></i>
             </button>
         </div>
 
-        <!-- Modal Body -->
-        <div class="p-6 space-y-4 overflow-y-auto">
-            <form id="product-form" class="space-y-4">
+        <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+            <form id="product-form" class="space-y-5">
                 <input type="hidden" id="product-id">
-                <!-- Bagian Gambar -->
+
                 <div>
-                    <label for="product-image" class="block mb-2 text-sm font-medium text-gray-700">Gambar
-                        Produk</label>
-                    <div class="flex items-center gap-4">
-                        <img id="image-preview" src="/public/img/placeholder.png" alt="Pratinjau Gambar"
-                            class="w-24 h-24 object-cover rounded-lg border bg-gray-100">
-                        <input type="file" id="product-image" accept="image/*"
-                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                    <label class="block mb-2 text-sm font-bold text-brand-brown">Gambar Produk</label>
+                    <div class="flex items-start gap-4">
+                        <img id="image-preview" src="https://placehold.co/150x150?text=Preview" alt="Pratinjau"
+                            class="w-24 h-24 object-cover rounded-xl border-2 border-dashed border-gray-300 p-1">
+                        <div class="flex-1">
+                            <input type="file" id="product-image" accept="image/*"
+                                class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-brand-orange hover:file:bg-orange-100 cursor-pointer">
+                            <p class="mt-2 text-xs text-gray-500">Format: JPG, PNG. Maks 2MB. Kosongkan jika tidak ingin
+                                mengubah gambar saat edit.</p>
+                        </div>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Kosongkan jika tidak ingin mengubah gambar.</p>
                 </div>
 
-                <div>
-                    <label for="product-name" class="block mb-2 text-sm font-medium text-gray-700">Nama Produk</label>
-                    <input type="text" id="product-name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-brand-orange focus:border-brand-orange"
-                        required>
-                </div>
-                <div>
-                    <label for="product-price" class="block mb-2 text-sm font-medium text-gray-700">Harga Jual
-                        (Rp)</label>
-                    <input type="number" id="product-price"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-brand-orange focus:border-brand-orange"
-                        required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="product-name" class="block mb-2 text-sm font-bold text-brand-brown">Nama
+                            Produk</label>
+                        <input type="text" id="product-name"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-orange-100 transition-all"
+                            placeholder="Contoh: Roti Coklat" required>
+                    </div>
+                    <div>
+                        <label for="product-price" class="block mb-2 text-sm font-bold text-brand-brown">Harga Jual
+                            (Rp)</label>
+                        <input type="number" id="product-price"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-orange-100 transition-all"
+                            placeholder="0" required>
+                    </div>
                 </div>
 
-                <!-- Bagian Resep -->
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="block text-sm font-medium text-gray-700">Resep / Bahan Baku</label>
+                <div class="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-sm font-bold text-brand-brown">Resep / Bahan Baku</label>
                         <button type="button" id="add-recipe-item-btn"
-                            class="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 flex items-center gap-1">
-                            <i class="fa-solid fa-plus fa-xs"></i> Tambah Bahan
+                            class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Tambah Bahan
                         </button>
                     </div>
-                    <div id="recipe-items-container" class="space-y-2 p-3 bg-gray-50 rounded-lg border">
-                        <!-- Baris resep akan ditambahkan oleh JavaScript -->
+                    <div id="recipe-items-container" class="space-y-2">
                     </div>
+                    <p class="text-xs text-gray-500 mt-2 italic">* Setiap produk yang terjual akan otomatis mengurangi
+                        stok bahan baku ini.</p>
                 </div>
             </form>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="flex justify-end items-center p-4 border-t space-x-3">
+        <div class="flex justify-end items-center p-4 border-t bg-gray-50 rounded-b-2xl space-x-3">
             <button id="cancel-btn" type="button"
-                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Batal</button>
+                class="px-5 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Batal</button>
             <button id="save-product-btn" type="submit" form="product-form"
-                class="px-4 py-2 bg-brand-orange text-white font-semibold rounded-lg hover:bg-orange-600">Simpan</button>
+                class="px-6 py-2 bg-brand-orange text-white text-sm font-bold rounded-lg shadow-lg shadow-orange-500/30 hover:bg-orange-600 hover:scale-105 transition-all">Simpan
+                Produk</button>
         </div>
     </div>
 </div>
 
-<!-- Template untuk baris item resep -->
 <template id="recipe-item-template">
-    <div class="recipe-item-row grid grid-cols-12 gap-2 items-center">
+    <div class="recipe-item-row grid grid-cols-12 gap-2 items-center animate-fade-in">
         <div class="col-span-6">
             <select
-                class="recipe-inventory-item w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-orange focus:border-brand-orange"
+                class="recipe-inventory-item w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-brand-orange focus:outline-none"
                 required>
-                <!-- Opsi inventaris akan diisi oleh JavaScript -->
+                <option value="" disabled selected>Pilih Bahan...</option>
             </select>
         </div>
-        <div class="col-span-4">
+        <div class="col-span-4 relative">
             <input type="number" step="0.01"
-                class="recipe-quantity w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-orange focus:border-brand-orange"
+                class="recipe-quantity w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-orange focus:outline-none"
                 placeholder="Jumlah" required>
         </div>
         <div class="col-span-2 flex items-center gap-2">
-            <span class="recipe-unit text-sm text-gray-500">unit</span>
-            <button type="button" class="remove-recipe-item-btn text-red-500 hover:text-red-700">
-                <i class="fa-solid fa-trash-alt"></i>
+            <span
+                class="recipe-unit text-xs font-semibold text-brand-brown bg-brand-cream px-2 py-1 rounded">unit</span>
+            <button type="button" class="remove-recipe-item-btn text-gray-400 hover:text-red-500 transition-colors p-1">
+                <i class="fa-solid fa-trash-can"></i>
             </button>
         </div>
     </div>
 </template>
 
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- Elemen DOM ---
+        // --- CONFIG ---
+        const API_BASE = '/api/v1';
+
+        // --- DOM ELEMENTS ---
         const addProductBtn = document.getElementById('add-product-btn');
         const modal = document.getElementById('product-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
@@ -146,26 +152,73 @@
         const recipeItemTemplate = document.getElementById('recipe-item-template');
         const productsTableBody = document.getElementById('products-table-body');
 
-        let inventoryItems = []; // Cache untuk data inventaris
+        let inventoryItems = [];
 
-        // --- Fungsi ---
+        // --- HELPER: FETCH WITH AUTH ---
+        // Fungsi ini otomatis menyisipkan Token JWT ke header
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Sesi habis. Silakan login kembali.");
+                window.location.href = '/';
+                return null;
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            // Jika body adalah FormData, browser akan set Content-Type otomatis (multipart/form-data).
+            // JANGAN set Content-Type: application/json secara manual jika kirim file.
+            if (!(options.body instanceof FormData)) {
+                if (!headers['Content-Type']) {
+                    headers['Content-Type'] = 'application/json';
+                }
+            } else {
+                // Hapus Content-Type agar browser yang set boundary-nya
+                delete headers['Content-Type'];
+            }
+
+            const response = await fetch(url, { ...options, headers });
+
+            if (response.status === 401) {
+                alert("Sesi tidak valid. Login ulang.");
+                localStorage.removeItem('token');
+                window.location.href = '/';
+                return null;
+            }
+
+            return response;
+        }
+
+        // --- FUNCTIONS ---
         const openModal = (mode = 'add', product = null) => {
             productForm.reset();
             recipeItemsContainer.innerHTML = '';
-            imagePreview.src = '/public/img/placeholder.png'; // Reset preview
-            productImageInput.value = ''; // Reset input file
+            imagePreview.src = 'https://placehold.co/150x150?text=Upload+Image';
+            productImageInput.value = '';
 
             if (mode === 'add') {
                 modalTitle.textContent = 'Tambah Produk Baru';
                 productIdInput.value = '';
-                addRecipeItemRow(); // Tambah satu baris resep kosong
+                addRecipeItemRow();
             } else if (mode === 'edit' && product) {
                 modalTitle.textContent = 'Edit Produk';
                 productIdInput.value = product.id;
                 productNameInput.value = product.name;
                 productPriceInput.value = product.price;
-                imagePreview.src = product.image_path || '/public/img/placeholder.png';
-                product.recipe.forEach(item => addRecipeItemRow(item));
+
+                // Tampilkan gambar lama jika ada
+                if (product.image_path && product.image_path !== "") {
+                    imagePreview.src = product.image_path;
+                }
+
+                if (product.recipe && product.recipe.length > 0) {
+                    product.recipe.forEach(item => addRecipeItemRow(item));
+                } else {
+                    addRecipeItemRow();
+                }
             }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -178,21 +231,24 @@
 
         const fetchInventoryItems = async () => {
             try {
-                const res = await fetchWithAuth('/api/v1/inventory');
-                if (!res.ok) throw new Error('Gagal memuat data inventaris');
+                const res = await fetchWithAuth(`${API_BASE}/inventory`);
+                if (!res || !res.ok) throw new Error('Gagal memuat data inventaris');
                 inventoryItems = await res.json();
-                // Buat opsi untuk select
-                const options = inventoryItems.map(item => `<option value="${item.id}" data-unit="${item.unit}">${item.name}</option>`).join('');
-                // Update semua select yang ada
+
+                // Update dropdown yang sudah ada (jika ada)
                 document.querySelectorAll('.recipe-inventory-item').forEach(select => {
-                    const selectedValue = select.value;
-                    select.innerHTML = options;
-                    select.value = selectedValue;
+                    const currentVal = select.value;
+                    populateSelect(select);
+                    select.value = currentVal;
                 });
             } catch (error) {
                 console.error(error);
-                alert(error.message);
             }
+        };
+
+        const populateSelect = (selectElement) => {
+            selectElement.innerHTML = '<option value="" disabled selected>Pilih Bahan...</option>' +
+                inventoryItems.map(item => `<option value="${item.id}" data-unit="${item.unit}">${item.name} (Stok: ${item.stock_level})</option>`).join('');
         };
 
         const addRecipeItemRow = (item = null) => {
@@ -202,18 +258,12 @@
             const quantityInput = row.querySelector('.recipe-quantity');
             const unitSpan = row.querySelector('.recipe-unit');
 
-            // Isi dropdown dengan opsi inventaris
-            select.innerHTML = inventoryItems.map(inv => `<option value="${inv.id}" data-unit="${inv.unit}">${inv.name}</option>`).join('');
+            populateSelect(select);
 
             if (item) {
                 select.value = item.inventory_item_id;
                 quantityInput.value = item.quantity_used;
-                unitSpan.textContent = item.unit;
-            } else {
-                // Set unit untuk item pertama
-                if (inventoryItems.length > 0) {
-                    unitSpan.textContent = inventoryItems[0].unit;
-                }
+                unitSpan.textContent = item.unit || 'unit';
             }
 
             select.addEventListener('change', (e) => {
@@ -226,44 +276,56 @@
         };
 
         const fetchAndRenderProducts = async () => {
-            productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i><p class="mt-2 text-gray-500">Memuat data...</p></td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-brand-orange"></i><p class="mt-2 text-gray-500">Memuat data...</p></td></tr>`;
             try {
-                const res = await fetchWithAuth('/api/v1/products');
-                if (!res.ok) throw new Error('Gagal memuat produk');
+                const res = await fetchWithAuth(`${API_BASE}/products`);
+                if (!res || !res.ok) throw new Error('Gagal memuat produk');
                 const products = await res.json();
 
                 productsTableBody.innerHTML = '';
                 if (!products || products.length === 0) {
-                    productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-gray-500">Belum ada produk.</td></tr>`;
+                    productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-gray-400 italic">Belum ada produk yang didaftarkan.</td></tr>`;
                     return;
                 }
 
                 products.forEach(product => {
-                    const recipeHtml = product.recipe.map(r => `<li>${r.quantity_used} ${r.unit} ${r.inventory_item_name}</li>`).join('');
-                    const imageUrl = product.image_path || '/public/img/placeholder.png';
+                    const recipeHtml = product.recipe ? product.recipe.map(r => `<li class="truncate">• ${r.quantity_used} ${r.unit} ${r.inventory_item_name}</li>`).join('') : '<span class="text-gray-400">-</span>';
+
+                    // Fallback image handling
+                    const imageUrl = product.image_path ? product.image_path : 'https://placehold.co/100x100?text=No+Img';
+
                     const row = document.createElement('tr');
-                    row.className = 'bg-white border-b hover:bg-gray-50';
+                    row.className = 'bg-white border-b hover:bg-orange-50/50 transition-colors';
                     row.innerHTML = `
-                    <td class="px-6 py-4"><img src="${imageUrl}" alt="${product.name}" class="w-16 h-16 object-cover rounded-md"></td>
-                    <td class="px-6 py-4 font-medium text-gray-900">${product.name}</td>
-                    <td class="px-6 py-4">Rp ${product.price.toLocaleString('id-ID')}</td>
-                    <td class="px-6 py-4"><ul class="list-disc list-inside text-xs">${recipeHtml}</ul></td>
+                    <td class="px-6 py-4">
+                        <img src="${imageUrl}" 
+                             alt="${product.name}" 
+                             class="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                             onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=Err';">
+                    </td>
+                    <td class="px-6 py-4 font-bold text-brand-dark">${product.name}</td>
+                    <td class="px-6 py-4 font-mono text-brand-orange">Rp ${product.price.toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4"><ul class="text-xs text-gray-600 max-w-[200px]">${recipeHtml}</ul></td>
                     <td class="px-6 py-4 text-center space-x-2">
-                        <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${product.id}"><i class="fa-solid fa-pencil-alt"></i></button>
-                        <button class="delete-btn text-red-600 hover:text-red-800" data-id="${product.id}"><i class="fa-solid fa-trash-alt"></i></button>
+                        <button class="edit-btn w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition" data-id="${product.id}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="delete-btn w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition" data-id="${product.id}" title="Hapus"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
-                    // Event listener untuk tombol edit & delete
+
+                    // Event Listeners untuk tombol di dalam tabel
                     row.querySelector('.edit-btn').addEventListener('click', async () => {
-                        const res = await fetchWithAuth(`/api/v1/products/${product.id}`);
-                        const productData = await res.json();
-                        openModal('edit', productData);
+                        // Fetch detail produk lengkap untuk diedit
+                        const res = await fetchWithAuth(`${API_BASE}/products/${product.id}`);
+                        if (res.ok) {
+                            const productData = await res.json();
+                            openModal('edit', productData);
+                        }
                     });
+
                     row.querySelector('.delete-btn').addEventListener('click', async () => {
-                        if (confirm(`Yakin ingin menghapus produk "${product.name}"?`)) {
-                            const res = await fetchWithAuth(`/api/v1/products/${product.id}`, { method: 'DELETE' });
-                            if (res.ok) {
-                                alert('Produk berhasil dihapus.');
+                        if (confirm(`Hapus produk "${product.name}"? Data tidak bisa dikembalikan.`)) {
+                            const res = await fetchWithAuth(`${API_BASE}/products/${product.id}`, { method: 'DELETE' });
+                            if (res && res.ok) {
                                 fetchAndRenderProducts();
                             } else {
                                 alert('Gagal menghapus produk.');
@@ -274,14 +336,16 @@
                 });
             } catch (error) {
                 console.error(error);
-                productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal memuat data.</td></tr>`;
+                productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal mengambil data server.</td></tr>`;
             }
         };
 
         const handleFormSubmit = async (e) => {
             e.preventDefault();
+
             const id = productIdInput.value;
             const recipeItems = [];
+
             document.querySelectorAll('.recipe-item-row').forEach(row => {
                 const itemId = row.querySelector('.recipe-inventory-item').value;
                 const quantity = row.querySelector('.recipe-quantity').value;
@@ -293,18 +357,16 @@
                 }
             });
 
-            if (recipeItems.length === 0) {
-                alert('Resep tidak boleh kosong. Mohon tambahkan minimal satu bahan baku.');
-                return;
-            }
-
+            // 1. Buat Objek Data Produk
             const productData = {
                 name: productNameInput.value,
                 price: parseInt(productPriceInput.value),
                 recipe: recipeItems
             };
 
+            // 2. Masukkan ke FormData
             const formData = new FormData();
+            // Backend meminta JSON string di field 'data'
             formData.append('data', JSON.stringify(productData));
 
             // Tambahkan file gambar jika ada yang dipilih
@@ -312,22 +374,23 @@
                 formData.append('image', productImageInput.files[0]);
             }
 
-            const url = id ? `/api/v1/products/${id}` : '/api/v1/products';
+            const url = id ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
             const method = id ? 'PUT' : 'POST';
 
             try {
                 const res = await fetchWithAuth(url, {
                     method: method,
-                    body: formData // Kirim sebagai FormData, bukan JSON
+                    body: formData // Kirim FormData
                 });
+
                 const result = await res.json();
                 if (!res.ok) throw new Error(result.error || 'Terjadi kesalahan');
 
-                alert(`Produk berhasil ${id ? 'diperbarui' : 'disimpan'}.`);
+                alert(`Berhasil! Produk telah ${id ? 'diperbarui' : 'disimpan'}.`);
                 closeModal();
                 fetchAndRenderProducts();
             } catch (error) {
-                alert(`Gagal menyimpan produk: ${error.message}`);
+                alert(`Gagal: ${error.message}`);
             }
         };
 
@@ -336,15 +399,17 @@
         closeModalBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
         addRecipeItemBtn.addEventListener('click', () => addRecipeItemRow());
+
         productImageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 imagePreview.src = URL.createObjectURL(file);
             }
         });
+
         productForm.addEventListener('submit', handleFormSubmit);
 
-        // --- Inisialisasi ---
+        // --- Init ---
         const init = async () => {
             await fetchInventoryItems();
             await fetchAndRenderProducts();

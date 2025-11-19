@@ -29,15 +29,23 @@ func main() {
 	engine := html.New("./views", ".html")
 	engine.Reload(true) // Auto reload html saat dev
 
-	// DAFTARKAN FUNGSI CUSTOM "default" DI SINI
-	// Ini akan mengatasi error "function 'default' not defined"
+	// --- DAFTARKAN FUNGSI CUSTOM DI SINI ---
+
+	// A. Fungsi "default" (untuk menangani nilai kosong)
 	engine.AddFunc("default", func(d interface{}, s string) interface{} {
-		// Jika nilai 's' (dari pipeline) tidak kosong/nil, gunakan itu.
 		if s != "" {
 			return s
 		}
-		// Jika tidak, gunakan nilai default 'd'.
 		return d
+	})
+
+	// B. FUNGSI BARU: "activeClass" (PENTING UNTUK SIDEBAR)
+	// Fungsi ini mengecek apakah menu sedang aktif, lalu memberi warna oranye
+	engine.AddFunc("activeClass", func(currentTitle, menuTitle string) string {
+		if currentTitle == menuTitle {
+			return "bg-brand-orange text-brand-dark font-semibold"
+		}
+		return ""
 	})
 
 	app := fiber.New(fiber.Config{
@@ -49,7 +57,6 @@ func main() {
 	// ---------------------------------------------------------
 	// 4. STATIC FILES (PENTING UTK TAILWIND)
 	// ---------------------------------------------------------
-	// Tanpa ini, file /public/css/style.css tidak akan bisa diakses browser
 	app.Static("/public", "./public")
 	app.Static("/public/uploads", "./public/uploads")
 
@@ -62,17 +69,16 @@ func main() {
 		})
 	})
 
-	// PERUBAHAN: Render layout admin, bukan file admin.html langsung
+	// DASHBOARD
 	app.Get("/admin", func(c *fiber.Ctx) error {
 		return c.Render("admin/dashboard", fiber.Map{
 			"Title":           "Admin Dashboard",
 			"PageTitle":       "Dashboard",
 			"PageDescription": "Ringkasan laporan keuangan dan inventory",
-			// Hapus "Layout" dari sini karena tidak ada gunanya di dalam Map
-		}, "layouts/admin") // <--- PINDAHKAN KE SINI (Parameter ke-3)
+		}, "layouts/admin")
 	})
 
-	// HALAMAN BARU: Render halaman manajemen produk
+	// PRODUK
 	app.Get("/admin/products", func(c *fiber.Ctx) error {
 		return c.Render("admin/products", fiber.Map{
 			"Title":           "Manajemen Produk",
@@ -81,7 +87,7 @@ func main() {
 		}, "layouts/admin")
 	})
 
-	// HALAMAN BARU: Render halaman manajemen inventaris
+	// INVENTARIS
 	app.Get("/admin/inventory", func(c *fiber.Ctx) error {
 		return c.Render("admin/inventory", fiber.Map{
 			"Title":           "Manajemen Inventaris",
@@ -90,7 +96,7 @@ func main() {
 		}, "layouts/admin")
 	})
 
-	// HALAMAN BARU: Render halaman manajemen pengguna
+	// PENGGUNA
 	app.Get("/admin/users", func(c *fiber.Ctx) error {
 		return c.Render("admin/users", fiber.Map{
 			"Title":           "Manajemen Pengguna",
@@ -99,7 +105,7 @@ func main() {
 		}, "layouts/admin")
 	})
 
-	// HALAMAN BARU: Render halaman manajemen biaya operasional
+	// BIAYA OPERASIONAL
 	app.Get("/admin/operational-costs", func(c *fiber.Ctx) error {
 		return c.Render("admin/operational_costs", fiber.Map{
 			"Title":           "Biaya Operasional",
@@ -117,19 +123,13 @@ func main() {
 
 	api := app.Group("/api/v1")
 
-	// === PUBLIC ROUTES (Bisa diakses TANPA Token) ===
-
-	// Health Check
+	// === PUBLIC ROUTES ===
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "Running", "message": "API Ready"})
 	})
-
-	// Login
-	// Note: Kita taruh di /api/v1/login supaya cocok dengan action form di HTML
 	api.Post("/login", authHandler.Login)
 
-	// === PROTECTED ROUTES (Harus Punya Token JWT) ===
-	// Middleware dipasang DISINI. Semua route di bawah baris ini TERKUNCI.
+	// === PROTECTED ROUTES (JWT) ===
 	api.Use(middleware.JWTProtected())
 
 	// User Profile
@@ -138,7 +138,7 @@ func main() {
 	// Admin Routes
 	admin := api.Group("/admin")
 	admin.Use(middleware.RoleProtected(models.RoleAdmin))
-	admin.Post("/register", authHandler.Register) // Hanya admin yg bisa daftarkan user baru
+	admin.Post("/register", authHandler.Register)
 	admin.Get("/users", handlers.GetUsers(database.DB))
 	admin.Put("/users/:id", handlers.UpdateUser(database.DB))
 	admin.Delete("/users/:id", handlers.DeleteUser(database.DB))
@@ -147,9 +147,9 @@ func main() {
 	inventory := api.Group("/inventory")
 	inventory.Get("", handlers.GetInventory)
 	inventory.Post("/stock-in", handlers.StockIn)
-	inventory.Post("", handlers.CreateInventoryItem(database.DB))       // Tambah item baru
-	inventory.Put("/:id", handlers.UpdateInventoryItem(database.DB))    // Edit item
-	inventory.Delete("/:id", handlers.DeleteInventoryItem(database.DB)) // Hapus item
+	inventory.Post("", handlers.CreateInventoryItem(database.DB))
+	inventory.Put("/:id", handlers.UpdateInventoryItem(database.DB))
+	inventory.Delete("/:id", handlers.DeleteInventoryItem(database.DB))
 
 	// Product Routes (Admin)
 	products := api.Group("/products")
@@ -160,18 +160,20 @@ func main() {
 	products.Delete("/:id", handlers.DeleteProduct(database.DB))
 
 	// Operational Costs Routes (Admin)
+	// PASTIKAN FILE handlers/operational_costs.go SUDAH DIBUAT
+	// JIKA BELUM, BAGIAN INI AKAN ERROR DI TERMINAL
 	opCosts := api.Group("/operational-costs")
 	opCosts.Get("", handlers.GetOperationalCosts(database.DB))
 	opCosts.Post("", handlers.CreateOperationalCost(database.DB))
 	opCosts.Put("/:id", handlers.UpdateOperationalCost(database.DB))
 	opCosts.Delete("/:id", handlers.DeleteOperationalCost(database.DB))
 
-	// POS Routes (Kasir & Admin)
+	// POS Routes
 	pos := api.Group("/pos")
 	pos.Use(middleware.RoleProtected(models.RoleKasir, models.RoleAdmin))
 	pos.Post("/transactions", handlers.CreateTransaction)
 
-	// Reports Routes (Admin & Karyawan)
+	// Reports Routes
 	reports := api.Group("/reports")
 	reports.Use(middleware.RoleProtected(models.RoleAdmin, models.RoleKaryawan))
 	reports.Get("/financial", handlers.GetFinancialReport)

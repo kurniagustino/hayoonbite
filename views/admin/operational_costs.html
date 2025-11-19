@@ -1,0 +1,244 @@
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-display font-bold text-brand-dark">Biaya Operasional</h1>
+            <p class="text-sm text-brand-brown/70">Catat pengeluaran rutin (Listrik, Gaji, dll)</p>
+        </div>
+        <button onclick="toggleForm()"
+            class="bg-brand-orange text-brand-dark px-4 py-2 rounded-lg font-semibold hover:bg-brand-orange/80 transition">
+            <i class="fa-solid fa-plus mr-2"></i> Catat Pengeluaran
+        </button>
+    </div>
+
+    <div id="inputForm" class="hidden bg-white p-6 rounded-xl shadow-sm border border-brand-orange/20">
+        <h3 class="font-bold text-lg mb-4 text-brand-dark">Input Pengeluaran Baru</h3>
+        <form id="costForm" onsubmit="submitCost(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+                <label class="block text-sm font-semibold text-brand-brown mb-1">Tanggal</label>
+                <input type="datetime-local" id="date" name="date" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-brand-orange">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-brand-brown mb-1">Kategori</label>
+                <select id="category" name="category"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-brand-orange">
+                    <option value="Bahan Baku">Bahan Baku (Darurat)</option>
+                    <option value="Listrik & Air">Listrik & Air</option>
+                    <option value="Gaji Karyawan">Gaji Karyawan</option>
+                    <option value="Sewa Tempat">Sewa Tempat</option>
+                    <option value="Pemasaran">Pemasaran / Iklan</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-brand-brown mb-1">Keterangan / Deskripsi</label>
+                <input type="text" id="description" name="description"
+                    placeholder="Contoh: Bayar tagihan listrik bulan November" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-brand-orange">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-brand-brown mb-1">Jumlah (Rp)</label>
+                <input type="number" id="amount" name="amount" placeholder="0" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-brand-orange">
+            </div>
+
+            <div class="md:col-span-2 flex justify-end space-x-3 mt-2">
+                <button type="button" onclick="toggleForm()"
+                    class="px-4 py-2 text-gray-500 hover:text-gray-700">Batal</button>
+                <button type="submit"
+                    class="bg-brand-dark text-brand-cream px-6 py-2 rounded-lg font-semibold hover:opacity-90">Simpan
+                    Data</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-brand-orange/20 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-brand-cream/30 border-b border-brand-orange/10">
+                <tr>
+                    <th class="px-6 py-4 text-sm font-semibold text-brand-brown">Tanggal</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-brand-brown">Kategori</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-brand-brown">Keterangan</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-brand-brown text-right">Jumlah</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-brand-brown text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="costTableBody" class="divide-y divide-gray-100">
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">Memuat data...</td>
+                </tr>
+            </tbody>
+            <tfoot class="bg-gray-50">
+                <tr>
+                    <td colspan="3" class="px-6 py-4 text-right font-bold text-brand-dark">Total Pengeluaran:</td>
+                    <td id="totalAmount" class="px-6 py-4 text-right font-bold text-red-600">Rp 0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_URL = '/api/v1/operational-costs';
+    const token = localStorage.getItem('token'); // Pastikan token JWT tersimpan saat login
+
+    // 1. Saat halaman dimuat, ambil data
+    document.addEventListener('DOMContentLoaded', loadCosts);
+
+    function toggleForm() {
+        const form = document.getElementById('inputForm');
+        form.classList.toggle('hidden');
+    }
+
+    // 2. Fungsi Ambil Data dari API Backend
+    // ... kode atas tetap sama ...
+
+    // GANTI FUNGSI loadCosts DENGAN INI:
+    async function loadCosts() {
+        // 1. AMBIL TOKEN LANGSUNG SAAT FUNGSI DIPANGGIL (Biar fresh)
+        const freshToken = localStorage.getItem('token');
+
+        // 2. CEK DI CONSOLE: Apa isi tokennya?
+        console.log("🔍 DEBUG TOKEN:", freshToken);
+
+        if (!freshToken) {
+            alert("Token hilang! Silakan login ulang.");
+            window.location.href = '/'; // Tendang ke login
+            return;
+        }
+
+        try {
+            const res = await fetch(API_URL, {
+                headers: {
+                    // Pastikan ada spasi setelah Bearer
+                    'Authorization': `Bearer ${freshToken}`
+                }
+            });
+
+            console.log("📡 STATUS RESPONS:", res.status); // Cek status code
+
+            if (res.status === 401) {
+                console.error("❌ Token ditolak server. Kemungkinan server restart atau token expired.");
+                alert("Sesi habis (Server Restart). Login ulang yuk!");
+                window.location.href = '/'; // Tendang ke login otomatis
+                return;
+            }
+
+            if (!res.ok) throw new Error("Gagal mengambil data");
+
+            const data = await res.json();
+            renderTable(data);
+        } catch (err) {
+            console.error(err);
+            document.getElementById('costTableBody').innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Gagal memuat data: ${err.message}</td></tr>`;
+        }
+    }
+
+    // 3. Render Tabel
+    function renderTable(data) {
+        const tbody = document.getElementById('costTableBody');
+        tbody.innerHTML = '';
+        let total = 0;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Belum ada data pengeluaran.</td></tr>`;
+            return;
+        }
+
+        data.forEach(item => {
+            total += item.amount;
+            const date = new Date(item.date).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+            const row = `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm text-gray-600">${date}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                            ${item.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-brand-dark font-medium">${item.description}</td>
+                    <td class="px-6 py-4 text-sm text-right text-red-600 font-mono font-semibold">
+                        - Rp ${item.amount.toLocaleString('id-ID')}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="deleteCost(${item.id})" class="text-gray-400 hover:text-red-500 transition">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('totalAmount').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    // 4. Fungsi Submit Data Baru
+    async function submitCost(e) {
+        e.preventDefault();
+
+        // AMBIL WAKTU DAN UBAH KE FORMAT ISO 8601 YANG VALID (RFC3339)
+        const dateInput = document.getElementById('date').value;
+        const dateObj = new Date(dateInput);
+
+        const formData = {
+            // Pastikan dikirim sebagai string ISO lengkap (contoh: 2023-11-19T22:56:00.000Z)
+            date: dateObj.toISOString(),
+            category: document.getElementById('category').value,
+            description: document.getElementById('description').value,
+            amount: parseFloat(document.getElementById('amount').value)
+        };
+
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!res.ok) throw new Error("Gagal menyimpan");
+
+            alert("Data berhasil disimpan!");
+            document.getElementById('costForm').reset();
+            toggleForm();
+            loadCosts(); // Reload tabel
+        } catch (err) {
+            alert("Error: " + err.message);
+        }
+    }
+
+    // 5. Fungsi Hapus
+    async function deleteCost(id) {
+        if (!confirm("Yakin ingin menghapus data ini?")) return;
+
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                loadCosts();
+            } else {
+                alert("Gagal menghapus data");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Set default datetime ke NOW
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('date').value = now.toISOString().slice(0, 16);
+</script>

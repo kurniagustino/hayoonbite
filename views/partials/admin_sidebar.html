@@ -1,128 +1,59 @@
-<aside id="main-sidebar"
-    class="w-64 bg-brand-brown text-white flex flex-col transition-all duration-300 ease-in-out z-40">
-
-    <div class="h-16 flex items-center justify-center border-b border-white/10 overflow-hidden">
-        <div class="flex items-center gap-3 font-display font-semibold text-xl whitespace-nowrap">
-            <i class="fa-solid fa-bread-slice text-brand-orange text-2xl flex-shrink-0"></i>
-            <span class="sidebar-text transition-opacity duration-300">
-                Hayoon<span class="text-brand-orange">Bite</span>
-            </span>
-        </div>
+{{define "partials/admin_sidebar"}}
+<aside class="w-64 bg-brand-brown text-brand-cream flex flex-col">
+    <div class="h-20 flex items-center justify-center border-b border-brand-orange/20">
+        <a href="/admin" class="text-2xl font-display font-semibold">Hayoon Bite</a>
     </div>
 
-    <nav class="flex-1 overflow-y-auto overflow-x-visible py-6 px-3 space-y-2 text-sm scrollbar-hide">
+    <nav class="flex-1 p-4 space-y-2">
+
+        <h3 class="px-4 pt-2 pb-1 text-xs font-semibold text-brand-cream/50 uppercase tracking-wider">Menu</h3>
 
         <a href="/admin"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg bg-white/10 text-white hover:bg-brand-orange transition-colors">
-            <i class="fa-solid fa-gauge-high w-5 text-center text-lg flex-shrink-0 group-hover:text-white"></i>
-            <span class="sidebar-text whitespace-nowrap">Dashboard</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Dashboard
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
+            class='flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 hover:bg-brand-orange hover:text-brand-dark {{activeClass .PageTitle "Dashboard"}}'>
+            <i class="fa-solid fa-fw fa-tachometer-alt w-6"></i>
+            <span>Dashboard</span>
         </a>
 
-        <a href="/admin/pos"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-cash-register w-5 text-center text-lg flex-shrink-0 text-brand-orange"></i>
-            <span class="sidebar-text whitespace-nowrap">Sistem Kasir</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Sistem Kasir
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
-        </a>
-
-        <div class="pt-4 pb-1">
-            <p class="sidebar-text px-4 text-xs font-semibold uppercase text-white/40 tracking-wider mb-1 truncate">
-                Manajemen</p>
-            <div class="sidebar-divider hidden h-px bg-white/10 mx-2 mb-2"></div>
-        </div>
+        <h3 class="px-4 pt-4 pb-1 text-xs font-semibold text-brand-cream/50 uppercase tracking-wider">Manajemen</h3>
 
         <a href="/admin/products"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-burger w-5 text-center text-lg flex-shrink-0"></i>
-            <span class="sidebar-text whitespace-nowrap">Produk</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Produk & Resep
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
+            class='flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 hover:bg-brand-orange hover:text-brand-dark {{activeClass .PageTitle "Produk & Resep"}}'>
+            <i class="fa-solid fa-fw fa-burger w-6"></i>
+            <span>Produk & Resep</span>
         </a>
 
         <a href="/admin/inventory"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-boxes-stacked w-5 text-center text-lg flex-shrink-0"></i>
-            <span class="sidebar-text whitespace-nowrap">Inventaris</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Inventaris Gudang
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
+            class='flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 hover:bg-brand-orange hover:text-brand-dark {{activeClass .PageTitle "Inventaris"}}'>
+            <i class="fa-solid fa-fw fa-boxes-stacked w-6"></i>
+            <span>Inventaris</span>
         </a>
+
+        <a href="/admin/operational-costs"
+            class='flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 hover:bg-brand-orange hover:text-brand-dark {{activeClass .PageTitle "Biaya Operasional"}}'>
+            <i class="fa-solid fa-fw fa-file-invoice-dollar w-6"></i>
+            <span>Biaya Operasional</span>
+        </a>
+
+        <h3 class="px-4 pt-4 pb-1 text-xs font-semibold text-brand-cream/50 uppercase tracking-wider">Sistem</h3>
 
         <a href="/admin/users"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-users-cog w-5 text-center text-lg flex-shrink-0"></i>
-            <span class="sidebar-text whitespace-nowrap">Pengguna</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Manajemen Pengguna
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
+            class='flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 hover:bg-brand-orange hover:text-brand-dark {{activeClass .PageTitle "Pengguna"}}'>
+            <i class="fa-solid fa-fw fa-users w-6"></i>
+            <span>Pengguna</span>
         </a>
 
-        <div class="pt-4 pb-1">
-            <p class="sidebar-text px-4 text-xs font-semibold uppercase text-white/40 tracking-wider mb-1 truncate">
-                Laporan</p>
-            <div class="sidebar-divider hidden h-px bg-white/10 mx-2 mb-2"></div>
-        </div>
-
-        <a href="/admin/reports/sales"
-            class="nav-item group relative w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-chart-line w-5 text-center text-lg flex-shrink-0"></i>
-            <span class="sidebar-text whitespace-nowrap">Penjualan</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-brand-dark text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50 border border-white/10">
-                Laporan Penjualan
-                <div
-                    class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-brand-dark">
-                </div>
-            </div>
-        </a>
     </nav>
 
-    <div class="p-3 border-t border-white/10 overflow-hidden">
-        <div id="user-profile" class="sidebar-text mb-3 p-2 rounded bg-white/5 text-center text-xs"></div>
-
-        <button id="logoutBtn"
-            class="nav-item group relative w-full flex items-center justify-center gap-3 px-4 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-colors">
-            <i class="fa-solid fa-right-from-bracket text-lg flex-shrink-0"></i>
-            <span class="sidebar-text font-semibold">Logout</span>
-
-            <div
-                class="sidebar-tooltip hidden absolute left-14 top-1/2 -translate-y-1/2 ml-3 bg-red-600 text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap z-50">
-                Keluar Aplikasi
-                <div class="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-red-600">
-                </div>
+    <div class="p-4 border-t border-brand-orange/20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center">
+                <span class="text-brand-dark font-bold">A</span>
             </div>
-        </button>
+            <div>
+                <p class="text-sm font-semibold">Admin</p>
+                <a href="#" id="logout-button" class="text-xs text-brand-cream/70 hover:text-white">Logout</a>
+            </div>
+        </div>
     </div>
 </aside>
+{{end}}
