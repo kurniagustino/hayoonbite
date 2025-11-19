@@ -51,6 +51,7 @@ func main() {
 	// ---------------------------------------------------------
 	// Tanpa ini, file /public/css/style.css tidak akan bisa diakses browser
 	app.Static("/public", "./public")
+	app.Static("/public/uploads", "./public/uploads")
 
 	// ---------------------------------------------------------
 	// 5. ROUTE HALAMAN WEB (Render HTML)
@@ -95,6 +96,15 @@ func main() {
 			"Title":           "Manajemen Pengguna",
 			"PageTitle":       "Pengguna",
 			"PageDescription": "Kelola akun pengguna dan hak akses",
+		}, "layouts/admin")
+	})
+
+	// HALAMAN BARU: Render halaman manajemen biaya operasional
+	app.Get("/admin/operational-costs", func(c *fiber.Ctx) error {
+		return c.Render("admin/operational_costs", fiber.Map{
+			"Title":           "Biaya Operasional",
+			"PageTitle":       "Biaya Operasional",
+			"PageDescription": "Kelola pengeluaran di luar bahan baku",
 		}, "layouts/admin")
 	})
 
@@ -148,6 +158,13 @@ func main() {
 	products.Get("/:id", handlers.GetProduct(database.DB))
 	products.Put("/:id", handlers.UpdateProduct(database.DB))
 	products.Delete("/:id", handlers.DeleteProduct(database.DB))
+
+	// Operational Costs Routes (Admin)
+	opCosts := api.Group("/operational-costs")
+	opCosts.Get("", handlers.GetOperationalCosts(database.DB))
+	opCosts.Post("", handlers.CreateOperationalCost(database.DB))
+	opCosts.Put("/:id", handlers.UpdateOperationalCost(database.DB))
+	opCosts.Delete("/:id", handlers.DeleteOperationalCost(database.DB))
 
 	// POS Routes (Kasir & Admin)
 	pos := api.Group("/pos")

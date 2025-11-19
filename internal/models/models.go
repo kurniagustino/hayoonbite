@@ -87,3 +87,16 @@ type LoginResponse struct {
 	Token string `json:"token"`
 	Role  Role   `json:"role"`
 }
+
+// ==========================================
+// FINANCE
+// ==========================================
+
+// OperationalCost merepresentasikan biaya operasional yang dikeluarkan.
+type OperationalCost struct {
+	ID          uint      `gorm:"primarykey" json:"id"`
+	Description string    `json:"description"`
+	Amount      float64   `json:"amount"`
+	Category    string    `json:"category"`
+	Date        time.Time `json:"date"`
+}

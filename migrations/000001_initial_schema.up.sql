@@ -52,6 +52,16 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 7. Create operational_costs table
+CREATE TABLE IF NOT EXISTS operational_costs (
+    id SERIAL PRIMARY KEY,
+    description TEXT,
+    amount NUMERIC(12, 2) NOT NULL,
+    category VARCHAR(100),
+    date TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 7. Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_recipe_items_product_id ON recipe_items(product_id);
 CREATE INDEX IF NOT EXISTS idx_recipe_items_inventory_item_id ON recipe_items(inventory_item_id);

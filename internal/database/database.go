@@ -56,6 +56,7 @@ func Migrate() {
 		&models.Transaction{},
 		&models.TransactionItem{},
 		&models.User{},
+		&models.OperationalCost{}, // <-- TAMBAHKAN MODEL BARU DI SINI
 	)
 
 	if err != nil {

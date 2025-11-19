@@ -5,3 +5,4 @@ DROP TABLE IF EXISTS recipe_items;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS inventory_items;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS operational_costs;

@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"hayoon-bite-backend/internal/models"
 	"log"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,20 +15,21 @@ import (
 
 // ProductRequest defines the structure for creating/updating a product
 type ProductRequest struct {
-	Name   string `json:"name" validate:"required"`
-	Price  int    `json:"price" validate:"required,gt=0"`
+	Name   string `json:"name"`
+	Price  int    `json:"price"`
 	Recipe []struct {
-		InventoryItemID int     `json:"inventory_item_id" validate:"required"`
-		QuantityUsed    float64 `json:"quantity_used" validate:"required,gt=0"`
-	} `json:"recipe" validate:"required,min=1"`
+		InventoryItemID int     `json:"inventory_item_id"`
+		QuantityUsed    float64 `json:"quantity_used"`
+	} `json:"recipe"`
 }
 
 // ProductResponse defines the structure for product responses, including the recipe
 type ProductResponse struct {
-	ID     uint                 `json:"id"`
-	Name   string               `json:"name"`
-	Price  int                  `json:"price"`
-	Recipe []RecipeItemResponse `json:"recipe"`
+	ID        uint                 `json:"id"`
+	Name      string               `json:"name"`
+	Price     int                  `json:"price"`
+	ImagePath string               `json:"image_path"`
+	Recipe    []RecipeItemResponse `json:"recipe"`
 }
 
 type RecipeItemResponse struct {
@@ -37,7 +43,7 @@ type RecipeItemResponse struct {
 func GetProducts(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var products []models.Product
-		// Ambil semua produk
+		// Ambil semua produk, urutkan dari yang terbaru
 		if err := db.Find(&products).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch products"})
 		}
@@ -53,10 +59,11 @@ func GetProducts(db *gorm.DB) fiber.Handler {
 				Scan(&recipeItems)
 
 			response = append(response, ProductResponse{
-				ID:     p.ID,
-				Name:   p.Name,
-				Price:  int(p.Price),
-				Recipe: recipeItems,
+				ID:        p.ID,
+				Name:      p.Name,
+				Price:     int(p.Price),
+				ImagePath: p.ImagePath,
+				Recipe:    recipeItems,
 			})
 		}
 
@@ -85,10 +92,11 @@ func GetProduct(db *gorm.DB) fiber.Handler {
 			Scan(&recipeItems)
 
 		response := ProductResponse{
-			ID:     product.ID,
-			Name:   product.Name,
-			Price:  int(product.Price),
-			Recipe: recipeItems,
+			ID:        product.ID,
+			Name:      product.Name,
+			Price:     int(product.Price),
+			ImagePath: product.ImagePath,
+			Recipe:    recipeItems,
 		}
 
 		return c.JSON(response)
@@ -98,17 +106,44 @@ func GetProduct(db *gorm.DB) fiber.Handler {
 // CreateProduct handles creating a new product and its recipe
 func CreateProduct(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req ProductRequest
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		// Ambil data form (termasuk file)
+		form, err := c.MultipartForm()
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid form data"})
 		}
 
-		// Gunakan transaction untuk memastikan semua query berhasil atau tidak sama sekali
-		err := db.Transaction(func(tx *gorm.DB) error {
+		// Ambil data JSON dari field 'data'
+		dataJSON := form.Value["data"]
+		if len(dataJSON) == 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing product data"})
+		}
+
+		var req ProductRequest
+		if err := json.Unmarshal([]byte(dataJSON[0]), &req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product JSON data"})
+		}
+
+		// Handle file upload
+		var imagePath string
+		files := form.File["image"]
+		if len(files) > 0 {
+			file := files[0]
+			// Buat nama file unik
+			filename := fmt.Sprintf("%d-%s", time.Now().UnixNano(), file.Filename)
+			savePath := filepath.Join("./public/uploads/products", filename)
+
+			if err := c.SaveFile(file, savePath); err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save image"})
+			}
+			imagePath = "/public/uploads/products/" + filename
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
 			// 1. Buat produk baru
 			newProduct := models.Product{
-				Name:  req.Name,
-				Price: float64(req.Price),
+				Name:      req.Name,
+				Price:     float64(req.Price),
+				ImagePath: imagePath,
 			}
 			if err := tx.Create(&newProduct).Error; err != nil {
 				return err
@@ -145,22 +180,59 @@ func UpdateProduct(db *gorm.DB) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product ID"})
 		}
 
+		// Ambil data form (termasuk file)
+		form, err := c.MultipartForm()
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid form data"})
+		}
+
+		// Ambil data JSON dari field 'data'
+		dataJSON := form.Value["data"]
+		if len(dataJSON) == 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing product data"})
+		}
+
 		var req ProductRequest
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		if err := json.Unmarshal([]byte(dataJSON[0]), &req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product JSON data"})
 		}
 
 		err = db.Transaction(func(tx *gorm.DB) error {
-			// 1. Update detail produk
-			productUpdate := models.Product{
-				Name:  req.Name,
-				Price: float64(req.Price),
+			// 1. Ambil produk yang ada
+			var existingProduct models.Product
+			if err := tx.First(&existingProduct, id).Error; err != nil {
+				return fmt.Errorf("product not found")
 			}
-			if err := tx.Model(&models.Product{}).Where("id = ?", id).Updates(productUpdate).Error; err != nil {
+
+			// Handle file upload jika ada file baru
+			var newImagePath string
+			files := form.File["image"]
+			if len(files) > 0 {
+				file := files[0]
+				filename := fmt.Sprintf("%d-%s", time.Now().UnixNano(), file.Filename)
+				savePath := filepath.Join("./public/uploads/products", filename)
+
+				if err := c.SaveFile(file, savePath); err != nil {
+					return fmt.Errorf("failed to save new image")
+				}
+				newImagePath = "/public/uploads/products/" + filename
+
+				// Hapus gambar lama jika ada
+				if existingProduct.ImagePath != "" {
+					oldPath := filepath.Join(".", existingProduct.ImagePath)
+					os.Remove(oldPath)
+				}
+				existingProduct.ImagePath = newImagePath
+			}
+
+			// 2. Update detail produk
+			existingProduct.Name = req.Name
+			existingProduct.Price = float64(req.Price)
+			if err := tx.Save(&existingProduct).Error; err != nil {
 				return err
 			}
 
-			// 2. Hapus resep lama
+			// 3. Hapus resep lama
 			if err := tx.Where("product_id = ?", id).Delete(&models.RecipeItem{}).Error; err != nil {
 				return err
 			}
@@ -196,10 +268,19 @@ func DeleteProduct(db *gorm.DB) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid product ID"})
 		}
 
-		// GORM akan menghapus produk.
-		// ON DELETE CASCADE pada foreign key di tabel recipe_items akan otomatis
-		// menghapus resep yang terkait.
-		result := db.Delete(&models.Product{}, id)
+		// Ambil data produk untuk menghapus gambar terkait
+		var product models.Product
+		if err := db.First(&product, id).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Product not found"})
+		}
+
+		// Hapus gambar dari server
+		if product.ImagePath != "" {
+			imagePath := filepath.Join(".", product.ImagePath)
+			os.Remove(imagePath)
+		}
+
+		result := db.Delete(&product)
 		if result.Error != nil {
 			log.Printf("Error deleting product: %v", result.Error)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete product"})

@@ -14,6 +14,7 @@
         <table class="w-full text-sm text-left text-gray-600">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
+                    <th scope="col" class="px-6 py-3">Gambar</th>
                     <th scope="col" class="px-6 py-3">Nama Produk</th>
                     <th scope="col" class="px-6 py-3">Harga</th>
                     <th scope="col" class="px-6 py-3">Resep</th>
@@ -23,7 +24,7 @@
             <tbody id="products-table-body">
                 <!-- Data akan diisi oleh JavaScript -->
                 <tr>
-                    <td colspan="4" class="text-center py-10">
+                    <td colspan="5" class="text-center py-10">
                         <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i>
                         <p class="mt-2 text-gray-500">Memuat data produk...</p>
                     </td>
@@ -48,6 +49,19 @@
         <div class="p-6 space-y-4 overflow-y-auto">
             <form id="product-form" class="space-y-4">
                 <input type="hidden" id="product-id">
+                <!-- Bagian Gambar -->
+                <div>
+                    <label for="product-image" class="block mb-2 text-sm font-medium text-gray-700">Gambar
+                        Produk</label>
+                    <div class="flex items-center gap-4">
+                        <img id="image-preview" src="/public/img/placeholder.png" alt="Pratinjau Gambar"
+                            class="w-24 h-24 object-cover rounded-lg border bg-gray-100">
+                        <input type="file" id="product-image" accept="image/*"
+                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Kosongkan jika tidak ingin mengubah gambar.</p>
+                </div>
+
                 <div>
                     <label for="product-name" class="block mb-2 text-sm font-medium text-gray-700">Nama Produk</label>
                     <input type="text" id="product-name"
@@ -126,6 +140,8 @@
         const productNameInput = document.getElementById('product-name');
         const productPriceInput = document.getElementById('product-price');
         const recipeItemsContainer = document.getElementById('recipe-items-container');
+        const productImageInput = document.getElementById('product-image');
+        const imagePreview = document.getElementById('image-preview');
         const addRecipeItemBtn = document.getElementById('add-recipe-item-btn');
         const recipeItemTemplate = document.getElementById('recipe-item-template');
         const productsTableBody = document.getElementById('products-table-body');
@@ -136,6 +152,9 @@
         const openModal = (mode = 'add', product = null) => {
             productForm.reset();
             recipeItemsContainer.innerHTML = '';
+            imagePreview.src = '/public/img/placeholder.png'; // Reset preview
+            productImageInput.value = ''; // Reset input file
+
             if (mode === 'add') {
                 modalTitle.textContent = 'Tambah Produk Baru';
                 productIdInput.value = '';
@@ -145,6 +164,7 @@
                 productIdInput.value = product.id;
                 productNameInput.value = product.name;
                 productPriceInput.value = product.price;
+                imagePreview.src = product.image_path || '/public/img/placeholder.png';
                 product.recipe.forEach(item => addRecipeItemRow(item));
             }
             modal.classList.remove('hidden');
@@ -206,23 +226,25 @@
         };
 
         const fetchAndRenderProducts = async () => {
-            productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i><p class="mt-2 text-gray-500">Memuat data...</p></td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i><p class="mt-2 text-gray-500">Memuat data...</p></td></tr>`;
             try {
                 const res = await fetchWithAuth('/api/v1/products');
                 if (!res.ok) throw new Error('Gagal memuat produk');
                 const products = await res.json();
 
                 productsTableBody.innerHTML = '';
-                if (products.length === 0) {
-                    productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-500">Belum ada produk.</td></tr>`;
+                if (!products || products.length === 0) {
+                    productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-gray-500">Belum ada produk.</td></tr>`;
                     return;
                 }
 
                 products.forEach(product => {
                     const recipeHtml = product.recipe.map(r => `<li>${r.quantity_used} ${r.unit} ${r.inventory_item_name}</li>`).join('');
+                    const imageUrl = product.image_path || '/public/img/placeholder.png';
                     const row = document.createElement('tr');
                     row.className = 'bg-white border-b hover:bg-gray-50';
                     row.innerHTML = `
+                    <td class="px-6 py-4"><img src="${imageUrl}" alt="${product.name}" class="w-16 h-16 object-cover rounded-md"></td>
                     <td class="px-6 py-4 font-medium text-gray-900">${product.name}</td>
                     <td class="px-6 py-4">Rp ${product.price.toLocaleString('id-ID')}</td>
                     <td class="px-6 py-4"><ul class="list-disc list-inside text-xs">${recipeHtml}</ul></td>
@@ -252,7 +274,7 @@
                 });
             } catch (error) {
                 console.error(error);
-                productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-red-500">Gagal memuat data.</td></tr>`;
+                productsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal memuat data.</td></tr>`;
             }
         };
 
@@ -276,11 +298,19 @@
                 return;
             }
 
-            const payload = {
+            const productData = {
                 name: productNameInput.value,
                 price: parseInt(productPriceInput.value),
                 recipe: recipeItems
             };
+
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(productData));
+
+            // Tambahkan file gambar jika ada yang dipilih
+            if (productImageInput.files[0]) {
+                formData.append('image', productImageInput.files[0]);
+            }
 
             const url = id ? `/api/v1/products/${id}` : '/api/v1/products';
             const method = id ? 'PUT' : 'POST';
@@ -288,7 +318,7 @@
             try {
                 const res = await fetchWithAuth(url, {
                     method: method,
-                    body: JSON.stringify(payload)
+                    body: formData // Kirim sebagai FormData, bukan JSON
                 });
                 const result = await res.json();
                 if (!res.ok) throw new Error(result.error || 'Terjadi kesalahan');
@@ -306,6 +336,12 @@
         closeModalBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
         addRecipeItemBtn.addEventListener('click', () => addRecipeItemRow());
+        productImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                imagePreview.src = URL.createObjectURL(file);
+            }
+        });
         productForm.addEventListener('submit', handleFormSubmit);
 
         // --- Inisialisasi ---
